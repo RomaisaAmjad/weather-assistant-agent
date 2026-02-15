@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Assistant Workflow</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding:0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 1100px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #2d3748;
+        }
+
+        .header p {
+            color: #718096;
+        }
+
+        .workflow-steps {
+            margin-bottom: 2rem;
+        }
+
+        .step-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-card.active {
+            background: #edf2ff;
+            border-color: #667eea;
+        }
+
+        .step-card.completed {
+            background: #f0fff4;
+            border-color: #48bb78;
+        }
+
+        .step-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-card.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .step-card.completed .step-number {
+            background: #48bb78;
+            color: white;
+        }
+
+        .step-status {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-pending {
+            background: #edf2f7;
+            color: #718096;
+        }
+
+        .status-loading {
+            background: #ebf8ff;
+            color: #3182ce;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #cbd5e0;
+            border-top-color: #3182ce;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .execute-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+        }
+
+        .execute-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            font-size: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-btn {
+            margin-top: 1.5rem;
+            padding: 0.6rem 2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⛅ Weather Assistant App</h1>
+        <p>Automated park walk email notifications</p>
+    </div>
+
+    <div class="workflow-steps">
+        <div class="step-card" data-step="1">
+            <div class="step-info">
+                <div class="step-number">1</div>
+                <div>
+                    <h3>Trigger</h3>
+                    <p>Workflow started</p>
+                </div>
+            </div>
+            <div class="step-status status-pending">Pending</div>
+        </div>
+
+        <div class="step-card" data-step="2">
+            <div class="step-info">
+                <div class="step-number">2</div>
+                <div>
+                    <h3>Weather Agent</h3>
+                    <p>Checking conditions</p>
+                </div>
+            </div>
+            <div class="step-status status-pending">Pending</div>
+        </div>
+
+        <div class="step-card" data-step="3">
+            <div class="step-info">
+                <div class="step-number">3</div>
+                <div>
+                    <h3>Email Content</h3>
+                    <p>Preparing message</p>
+                </div>
+            </div>
+            <div class="step-status status-pending">Pending</div>
+        </div>
+
+        <div class="step-card" data-step="4">
+            <div class="step-info">
+                <div class="step-number">4</div>
+                <div>
+                    <h3>Email Sent</h3>
+                    <p>Gmail delivery</p>
+                </div>
+            </div>
+            <div class="step-status status-pending">Pending</div>
+        </div>
+    </div>
+
+    <button class="execute-btn" id="executeBtn" onclick="executeWorkflow()">
+     Execute Workflow
+    </button>
+</div>
+
+<div class="modal" id="successModal">
+    <div class="modal-content">
+        <h2>Workflow Complete</h2>
+        <p>Your park walk email has been sent.</p>
+        <button class="modal-btn" onclick="closeModal()">Done</button>
+    </div>
+</div>
+
+<script>
+    // 🔥 HARD-CODED N8N WEBHOOK URL
+    const WEBHOOK_URL = "https://romaisaamjadktkktk.app.n8n.cloud/webhook-test/frontend-call";
+
+    async function executeWorkflow() {
+        const btn = document.getElementById("executeBtn");
+        btn.disabled = true;
+        btn.textContent = " Running...";
+
+        resetSteps();
+
+        try {
+            await runStep(1, 1000);
+            await runStep(2, 1200);
+
+            // ACTUAL N8N CALL
+            const res = await fetch(WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    trigger: "frontend",
+                    time: new Date().toISOString()
+                })
+            });
+
+            if (!res.ok) throw new Error("Webhook failed");
+
+            await runStep(3, 1000);
+            await runStep(4, 800);
+
+            document.getElementById("successModal").classList.add("show");
+        } catch (err) {
+            alert("Workflow execution failed");
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = " Execute Workflow";
+        }
+    }
+
+    function resetSteps() {
+        document.querySelectorAll(".step-card").forEach(step => {
+            step.classList.remove("active", "completed");
+            const status = step.querySelector(".step-status");
+            status.className = "step-status status-pending";
+            status.textContent = "Pending";
+        });
+    }
+
+    async function runStep(stepNum, delay) {
+        const step = document.querySelector(`[data-step="${stepNum}"]`);
+        const status = step.querySelector(".step-status");
+
+        step.classList.add("active");
+        status.className = "step-status status-loading";
+        status.innerHTML = `<div class="spinner"></div>Running`;
+
+        await new Promise(res => setTimeout(res, delay));
+
+        step.classList.remove("active");
+        step.classList.add("completed");
+        status.className = "step-status status-completed";
+        status.textContent = "Completed";
+    }
+
+    function closeModal() {
+        document.getElementById("successModal").classList.remove("show");
+    }
+</script>
+
+</body>
+</html>

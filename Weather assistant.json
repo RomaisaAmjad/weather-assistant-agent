@@ -1,0 +1,390 @@
+{
+  "name": "Weather assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "weather-assistant",
+        "contextWindowLength": 2
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5728,
+        1280
+      ],
+      "id": "28ffff04-fcdd-461a-81c0-c2fc9f8ab23c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "maxTokensToSample": 200
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        5584,
+        1280
+      ],
+      "id": "90027619-f110-4c00-b194-a518fc067cdb",
+      "name": "Groq Chat Model",
+      "executeOnce": false,
+      "credentials": {
+        "groqApi": {
+          "id": "hTc8J9AvK0E73P9r",
+          "name": "Groq account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "format": "imperial",
+        "cityName": "={{ $fromAI('City', 'City name for weather check', 'string') }}"
+      },
+      "type": "n8n-nodes-base.openWeatherMapTool",
+      "typeVersion": 1,
+      "position": [
+        6256,
+        1280
+      ],
+      "id": "a953228c-dceb-4099-b118-17bb39346499",
+      "name": "check-weather",
+      "notesInFlow": false,
+      "rewireOutputLogTo": "ai_tool",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "1iJl6ifKcD3fk9Ol",
+          "name": "OpenWeatherMap account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "parkName",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "shadeLevel",
+              "value": "Moderate",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "miles",
+              "value": "N/A",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "18089b1b-a3d5-4e10-bc24-906a3b90b6ca",
+      "name": "Prepare Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6480,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        5408,
+        1056
+      ],
+      "id": "cc44236f-f43c-49fd-b69b-52231717480e",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "iromaisa.22@gmail.com",
+          "mode": "list",
+          "cachedResultName": "iromaisa.22@gmail.com"
+        },
+        "start": "={{ $fromAI('start', 'Start time in ISO format', 'string') }}",
+        "end": "={{ $fromAI('end', 'End time in ISO format', 'string') }}",
+        "additionalFields": {
+          "summary": "={{ $fromAI('title', 'Event title', 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        6080,
+        1280
+      ],
+      "id": "19c65edb-0571-43bf-9b22-2601dae3c47a",
+      "name": "prepare-event",
+      "rewireOutputLogTo": "ai_tool",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qYFWSScWHcxS4Q89",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "iromaisa.22@gmail.com",
+        "subject": "Let's Go for a Walk! 🌳",
+        "message": "=<h2>Hey there! 🌞</h2>\n<p>It's a beautiful day outside and perfect for a walk!</p>\n<p><strong>Park:</strong> {{ $('Prepare Email Content').item.json.parkName || 'your favorite park' }}</p>\n<p><strong>Shade Level:</strong> {{ $('Prepare Email Content').item.json.shadeLevel || 'comfortable' }}</p>\n<p>Why not take a break and enjoy some fresh air? A nice walk in the park can do wonders for your mood and energy!</p>\n<p>See you out there! 🚶‍♂️🌳</p>",
+        "options": {}
+      },
+      "id": "da6bdbd9-8b59-4cbd-9e76-e356bc3eb24a",
+      "name": "Send Park Walk Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        6704,
+        1056
+      ],
+      "webhookId": "83e2a1a3-3771-4a53-af2c-6aac941c6230",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TQUCP5wUdyHIxTPH",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18mhLm1cRl4WnSME3zDZ55KtPwuGJcJ8NJfLN9M3QEm4",
+          "mode": "list",
+          "cachedResultName": "Weather sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18mhLm1cRl4WnSME3zDZ55KtPwuGJcJ8NJfLN9M3QEm4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18mhLm1cRl4WnSME3zDZ55KtPwuGJcJ8NJfLN9M3QEm4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $fromAI('Name', 'Weather condition description', 'string') }}",
+            "Miles": "={{ $fromAI('Miles', 'Temperature value', 'string') }}"
+          },
+          "matchingColumns": [
+            "Name",
+            "Miles"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Miles",
+              "displayName": "Miles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estimated Time",
+              "displayName": "Estimated Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shade Level",
+              "displayName": "Shade Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5888,
+        1280
+      ],
+      "id": "1a726f84-6dad-45b0-9bec-2b97bee4447e",
+      "name": "Add-to-sheet",
+      "rewireOutputLogTo": "ai_tool",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RkpyNIyglgPmE9kc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Weather Assistant that sends friendly weather updates via Gmail. When triggered, follow these steps:\n\n1. Call the 'check-weather' tool for Peshawar.\n2. Analyze the weather data to determine if it's cozy weather (comfortable temperature, clear or partly cloudy skies).\n3. Send a Gmail message with a friendly weather update that mentions it's cozy weather and suggests going for a walk. Make the message warm and encouraging. Include details about the temperature and conditions.\n4. Also append the weather data to the Google Sheets (Name column for weather condition, Miles column for temperature).\n5. Create a calendar event titled 'Weather Update' for 10:00 AM today.\n\nExecute these tools and provide a brief confirmation when done. Today's date is {{ $now.format('cccc, dd MMMM yyyy') }}.",
+        "options": {
+          "systemMessage": "=Role: You are a personal weather assistant that sends encouraging messages about nice weather. Context: Today's date is {{ $now.format('cccc, dd MMMM yyyy') }}. When the weather is pleasant (temperature between 60-80°F, not raining), describe it as cozy weather and suggest outdoor activities like walking. Be friendly and conversational in your Gmail messages.",
+          "maxIterations": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5888,
+        1056
+      ],
+      "id": "913befbd-1792-4fc0-8d7f-5a2945b5847f",
+      "name": "Weather Agent"
+    }
+  ],
+  "pinData": {
+    "Prepare Email Content": [
+      {
+        "json": {
+          "parkName": "The weather in Peshawar is quite pleasant today, with scattered clouds and a comfortable temperature of 66.34°F. It's a great day to get outside and enjoy a walk. I've sent you a friendly Gmail message with the details, appended the weather data to Google Sheets, and created a calendar event titled 'Weather Update'.",
+          "shadeLevel": "Moderate",
+          "miles": "N/A"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-weather": {
+      "ai_tool": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Content": {
+      "main": [
+        [
+          {
+            "node": "Send Park Walk Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare-event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add-to-sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "bc7d0db7-5489-41bf-8dd0-c9fc052d4eab",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc94546ff79edf41d0387393c06e96916e24e95e1911b2a1f386af9325aa1589"
+  },
+  "id": "UtqQPMbLUkKTQ-h3zpafG",
+  "tags": []
+}
